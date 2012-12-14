@@ -7,10 +7,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.Odbc;
 using System.Drawing;
+using System.Net.Configuration;
 using System.Windows.Forms;
+using System.IO;
 
 namespace AESMailer
 {
@@ -24,10 +27,12 @@ namespace AESMailer
 			InitializeComponent();
 		}
 		
-		void Button1Click(object sender, EventArgs e)
+		private List<Customer> GetCustomers()
 		{
+			List<Customer> customers = new List<Customer>();
 			
-			using(OdbcConnection conn = new OdbcConnection("Driver={MySQL ODBC 5.1 Driver};Server=localhost;Database=jtdata;User=root;Password=mysql;Option=3;"))
+			string connectString = ConfigurationManager.AppSettings["DBConnectString"];
+			using(OdbcConnection conn = new OdbcConnection(connectString))
 			{
 				conn.Open();
 				
@@ -39,18 +44,74 @@ namespace AESMailer
 					{
 						while(reader.Read())
 						{
-							int id = reader.GetInt32(0);
-							string name = reader.GetString(1);
-							string email = reader.GetString(2);
-							//bool valid = reader.GetBoolean(3);
-							
-							Mailer.SendEmail("no-reply@riataleather.com", email, string.Format("Hi {0}, this is a test subject", name),
-							                 string.Format("Hi {0}, this is the test in text", name),
-							                 string.Format("<p>Hi {0}, This is the test in HTML</p>", name));
+							Customer c = new Customer(reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
+							customers.Add(c);												
 						}
 					}
 				}
 			}
+
+			return customers;			
+		}
+		
+		private void SendMessages()
+		{
+			List<Customer> customers = GetCustomers();
+				
+			foreach (Customer c in customers) 
+			{
+				c.Valid = Mailer.SendEmail("no-reply@riataleather.com", 
+				                           c,
+				                           FormatWithCustomerData(textSubject.Text, c),
+				                           FormatWithCustomerData(textPreview.Text, c),
+				                           FormatWithCustomerData(webPreview.DocumentText, c));
+				
+				System.Threading.Thread.Sleep(250);
+			}
+		}
+		
+		private string FormatWithCustomerData(string messageText, Customer customer)
+		{
+			return string.Format(messageText, customer.Name, customer.Email);
+		}
+		
+		void ButtonBrowseHtmlClick(object sender, EventArgs e)
+		{
+			string path = BrowseForFile("Select HTML message template");
+			if(!string.IsNullOrEmpty(path))
+			{
+				textHtmlFile.Text = path;
+				webPreview.DocumentText = GetFileContents(path);
+			}
+		}
+		
+		void ButtonBrowseTextClick(object sender, EventArgs e)
+		{
+			string path = BrowseForFile("Select Text message template");
+			if(!string.IsNullOrEmpty(path))
+			{
+				textTextFile.Text = path;
+				textPreview.Text = GetFileContents(path);
+			}
+		}
+		
+		string BrowseForFile(string caption)
+		{
+			openFileDialog1.Title = caption;
+			if(DialogResult.OK == openFileDialog1.ShowDialog(this))
+			{
+				return openFileDialog1.FileName;
+			}
+			
+			return null;
+		}
+		
+		string GetFileContents(string path)
+		{
+			using(StreamReader reader = new StreamReader(path))
+			{
+				return reader.ReadToEnd();
+			}			
 		}
 	}	
 }

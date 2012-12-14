@@ -25,19 +25,19 @@ namespace AESMailer
 		{
 		}
 
-		public static Boolean SendEmail(String From, String To, String Subject, String Text = null, 
+		public static Boolean SendEmail(String From, Customer customer, String Subject, String Text = null, 
 		                                String HTML = null, String emailReplyTo = null, String returnPath = null)
 		{
 		    if (Text != null && HTML != null)
 		    {
 		        String from = From;
-		        List<String> to = To
+		        List<String> to = customer.Email
 		            .Replace(", ", ",")
 		            .Split(',')
 		            .ToList();
 		
 				Destination destination = new Destination();
-		        destination.WithToAddresses(to);
+		        destination.WithToAddresses(customer.Email);
 		        //destination.WithCcAddresses(cc);
 		        //destination.WithBccAddresses(bcc);
 		
@@ -90,20 +90,16 @@ namespace AESMailer
 		        {
 		            SendEmailResponse response = ses.SendEmail(request);
 		            SendEmailResult result = response.SendEmailResult;
-		            Console.WriteLine(String.Format("Email sent.  Message ID: {0}",
-		                result.MessageId));
-		
 					return true;
 		        }
 		        catch (Exception ex)
 		        {
-		            Console.WriteLine(ex.Message);
+		            customer.ErrorMessage = ex.Message;
 		            return false;
 		        }
 		    }
 		
-		    Console.WriteLine("Specify Text and/or HTML for the email body!");
-		    return false;
+		    throw new Exception("Specify Text and/or HTML for the email body!");
 		}		
 	}
 }
