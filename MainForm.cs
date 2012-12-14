@@ -27,9 +27,9 @@ namespace AESMailer
 			InitializeComponent();
 		}
 		
-		private List<Customer> GetCustomers()
+		private List<Recipient> GetRecipients()
 		{
-			List<Customer> customers = new List<Customer>();
+			List<Recipient> recipients = new List<Recipient>();
 			
 			string connectString = ConfigurationManager.AppSettings["DBConnectString"];
 			using(OdbcConnection conn = new OdbcConnection(connectString))
@@ -44,35 +44,35 @@ namespace AESMailer
 					{
 						while(reader.Read())
 						{
-							Customer c = new Customer(reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
-							customers.Add(c);												
+							Recipient r = new Recipient(reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
+							recipients.Add(r);												
 						}
 					}
 				}
 			}
 
-			return customers;			
+			return recipients;			
 		}
 		
 		private void SendMessages()
 		{
-			List<Customer> customers = GetCustomers();
+			List<Recipient> recipients = GetRecipients();
 				
-			foreach (Customer c in customers) 
+			foreach (Recipient r in recipients) 
 			{
-				c.Valid = Mailer.SendEmail("no-reply@riataleather.com", 
-				                           c,
-				                           FormatWithCustomerData(textSubject.Text, c),
-				                           FormatWithCustomerData(textPreview.Text, c),
-				                           FormatWithCustomerData(webPreview.DocumentText, c));
+				r.Valid = Mailer.SendEmail("no-reply@riataleather.com", 
+				                           r,
+				                           FormatWithRecipientData(textSubject.Text, r),
+				                           FormatWithRecipientData(textPreview.Text, r),
+				                           FormatWithRecipientData(webPreview.DocumentText, r));
 				
 				System.Threading.Thread.Sleep(250);
 			}
 		}
 		
-		private string FormatWithCustomerData(string messageText, Customer customer)
+		private string FormatWithRecipientData(string messageText, Recipient recipient)
 		{
-			return string.Format(messageText, customer.Name, customer.Email);
+			return string.Format(messageText, recipient.Name, recipient.Email);
 		}
 		
 		void ButtonBrowseHtmlClick(object sender, EventArgs e)

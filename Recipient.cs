@@ -13,9 +13,9 @@ namespace AESMailer
 	/// <summary>
 	/// Description of Customer.
 	/// </summary>
-	public class Customer
+	public class Recipient
 	{
-		public Customer()
+		public Recipient()
 		{
 			Id = -1;
 			Name = string.Empty;
@@ -24,7 +24,7 @@ namespace AESMailer
 			ErrorMessage = string.Empty;
 		}
 		
-		public Customer(int id, string name, string email)
+		public Recipient(int id, string name, string email)
 		{
 			Id = id;
 			Name = name;

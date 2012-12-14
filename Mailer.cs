@@ -25,19 +25,19 @@ namespace AESMailer
 		{
 		}
 
-		public static Boolean SendEmail(String From, Customer customer, String Subject, String Text = null, 
+		public static Boolean SendEmail(String From, Recipient recipient, String Subject, String Text = null, 
 		                                String HTML = null, String emailReplyTo = null, String returnPath = null)
 		{
 		    if (Text != null && HTML != null)
 		    {
 		        String from = From;
-		        List<String> to = customer.Email
+		        List<String> to = recipient.Email
 		            .Replace(", ", ",")
 		            .Split(',')
 		            .ToList();
 		
 				Destination destination = new Destination();
-		        destination.WithToAddresses(customer.Email);
+		        destination.WithToAddresses(recipient.Email);
 		        //destination.WithCcAddresses(cc);
 		        //destination.WithBccAddresses(bcc);
 		
@@ -94,7 +94,7 @@ namespace AESMailer
 		        }
 		        catch (Exception ex)
 		        {
-		            customer.ErrorMessage = ex.Message;
+		            recipient.ErrorMessage = ex.Message;
 		            return false;
 		        }
 		    }
